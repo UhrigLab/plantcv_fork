@@ -189,9 +189,10 @@ def _draw_roi(img, roi_contour):
     if len(np.shape(ref_img)) == 2:
         ref_img = cv2.cvtColor(ref_img, cv2.COLOR_GRAY2BGR)
     # Draw the contour on the reference image
-    cv2.drawContours(ref_img, roi_contour, -1, (255, 0, 0), params.line_thickness)
+    res = cv2.drawContours(ref_img, roi_contour, -1, (255, 0, 0), params.line_thickness)
     _debug(visual=ref_img,
            filename=os.path.join(params.debug_outdir, str(params.device) + "_roi.png"))
+    return res
 
 
 def multi(img, coord, radius, spacing=None, nrows=None, ncols=None):
@@ -328,7 +329,7 @@ def custom(img, vertices):
     roi_hierarchy = np.array([[[-1, -1, -1, -1]]], dtype=np.int32)
 
     # Draw the ROIs if requested
-    _draw_roi(img=img, roi_contour=roi_contour)
+    res = _draw_roi(img=img, roi_contour=roi_contour)
 
     # Check that the ROI doesn't go off the screen
     for i in vertices:
@@ -336,4 +337,4 @@ def custom(img, vertices):
         if x < 0 or x > width or y < 0 or y > height:
             fatal_error("An ROI extends outside of the image!")
 
-    return roi_contour, roi_hierarchy
+    return roi_contour, roi_hierarchy, res
