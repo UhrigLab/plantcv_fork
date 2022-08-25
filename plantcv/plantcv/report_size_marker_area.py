@@ -4,19 +4,15 @@ import cv2
 import numpy as np
 import os
 from plantcv.plantcv import fatal_error
-from plantcv.plantcv import rgb2gray_hsv
 from plantcv.plantcv import find_objects
-from plantcv.plantcv.threshold import binary as binary_threshold
 from plantcv.plantcv import roi_objects
 from plantcv.plantcv import object_composition
-from plantcv.plantcv import apply_mask
 from plantcv.plantcv._debug import _debug
 from plantcv.plantcv import params
 from plantcv.plantcv import outputs
 
 
-def report_size_marker_area(img, roi_contour, roi_hierarchy, marker='define', objcolor='dark', thresh_channel=None,
-                            thresh=None, label="default"):
+def report_size_marker_area(img, roi_contour, roi_hierarchy, marker='define', masked_img=None, label="default"):
     """
     Detects a size marker in a specified region and reports its size and eccentricity
 
@@ -26,9 +22,8 @@ def report_size_marker_area(img, roi_contour, roi_hierarchy, marker='define', ob
     roi_hierarchy   = A region of interest contour hierarchy (e.g. output from pcv.roi.rectangle or other methods)
     marker          = 'define' or 'detect'. If define it means you set an area, if detect it means you want to
                       detect within an area
-    objcolor        = Object color is 'dark' or 'light' (is the marker darker or lighter than the background)
-    thresh_channel  = 'h', 's', or 'v' for hue, saturation or value
-    thresh          = Binary threshold value (integer)
+    masked_img      = Binary image in which the size marker is white and the area around it is black.
+                      If marker == 'detect', masked_img must != None.
     label      = optional label parameter, modifies the variable name of observations recorded
 
     Returns:
@@ -38,9 +33,7 @@ def report_size_marker_area(img, roi_contour, roi_hierarchy, marker='define', ob
     :param roi_contour: list
     :param roi_hierarchy: numpy.ndarray
     :param marker: str
-    :param objcolor: str
-    :param thresh_channel: str
-    :param thresh: int
+    :param masked_img: numpy.ndarray
     :param label: str
     :return: analysis_images: list
     """
@@ -66,14 +59,9 @@ def report_size_marker_area(img, roi_contour, roi_hierarchy, marker='define', ob
 
     # If the marker type is "detect" then we will use the ROI to isolate marker contours from the input image
     if marker.upper() == 'DETECT':
-        # We need to convert the input image into an one of the HSV channels and then threshold it
-        if thresh_channel is not None and thresh is not None:
-            # Mask the input image
-            masked = apply_mask(img=ref_img, mask=roi_mask, mask_color="black")
-            # Convert the masked image to hue, saturation, or value
-            marker_hsv = rgb2gray_hsv(rgb_img=masked, channel=thresh_channel)
-            # Threshold the HSV image
-            marker_bin = binary_threshold(gray_img=marker_hsv, threshold=thresh, max_value=255, object_type=objcolor)
+        # Confirm that a mask of the size marker has been provided
+        if masked_img is not None:
+            marker_bin = masked_img
             # Identify contours in the masked image
             contours, hierarchy = find_objects(img=ref_img, mask=marker_bin)
             # Filter marker contours using the input ROI
@@ -89,7 +77,7 @@ def report_size_marker_area(img, roi_contour, roi_hierarchy, marker='define', ob
         else:
             # Reset debug mode
             params.debug = debug
-            fatal_error('thresh_channel and thresh must be defined in detect mode')
+            fatal_error('masked_img must be defined in detect mode')
     elif marker.upper() == "DEFINE":
         # Identify contours in the masked image
         contours, hierarchy = find_objects(img=ref_img, mask=roi_mask)
