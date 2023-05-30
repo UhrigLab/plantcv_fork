@@ -14,7 +14,8 @@ the values out as observations to get saved out. Can also print out a histogram 
     - label         - Optional label parameter, modifies the variable name of observations recorded. (default `label="default"`)
 - **Example use:**
     - Below 
-- **Output data stored:** Data ('max_reflectance', 'min_reflectance', 'median_reflectance', 'spectral_std', 'spectral_frequencies', 'global_mean_reflectance', 'global_median_reflectance', 'global_spectral_std') automatically gets stored to the 
+- **Output data stored:** Data ('global_mean_reflectance', 'global_median_reflectance', 'global_spectral_std', 'wavelength_means', 'max_reflectance', 
+    'min_reflectance', 'spectral_std', 'spectral_frequencies') automatically gets stored to the 
     [`Outputs` class](outputs.md) when this function is ran. 
     These data can always get accessed during a workflow (example below). For more detail about data output see [Summary of Output Observations](output_measurements.md#summary-of-output-observations)
 
@@ -25,7 +26,7 @@ from plantcv import plantcv as pcv
 # Set global debug behavior to None (default), "print" (to file), 
 # or "plot" (Jupyter Notebooks or X11)
 
-pcv.params.debug = "print"
+pcv.params.debug = "plot"
 
 # Calculates reflectance frequencies and writes the values as observations. Also provides a histogram of this data
 spectral_hist  = pcv.hyperspectral.analyze_spectral(array=spectral_data, mask=mask, histplot=True, label="default")
